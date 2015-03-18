@@ -1,19 +1,19 @@
 
-#PASOS PARA COMPILAR Y GENERAR EL FICHERO EJECUTABLE CON AUTOCONF Y AUTOMAKE
+###PASOS PARA COMPILAR Y GENERAR EL FICHERO EJECUTABLE CON AUTOCONF Y AUTOMAKE
 
-##1
+1)
  $ autoconf
 
-##2
+2)
  $ aclocal
 
-##3
+3)
  $ autoconf --add-missing
 
-##4
+4)
  $ ./configure
 
-##5
+5)
  $ make
 
 
