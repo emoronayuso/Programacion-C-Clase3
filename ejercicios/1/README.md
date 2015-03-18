@@ -8,7 +8,7 @@
  $ aclocal
 
 3)
- $ autoconf --add-missing
+ $ automake --add-missing
 
 4)
  $ ./configure
