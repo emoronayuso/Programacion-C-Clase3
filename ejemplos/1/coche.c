@@ -3,7 +3,11 @@
 
 struct coche *curso_coche_alloc(void)
 {
-	return (struct coche *)malloc(sizeof(struct coche));
+	struct coche *c = (struct coche *)malloc(sizeof(struct coche));
+	
+	memset(c, 0, sizeof(struct coche));
+
+	return c;
 }
 
 void curso_coche_free(struct coche *c)

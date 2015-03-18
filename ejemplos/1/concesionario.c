@@ -13,12 +13,14 @@ struct concesionario *curso_concesionario_alloc(void)
 {
 	struct concesionario *con;
 
-	con = malloc(sizeof(struct concesionario));
+	con = (struct concesionario *)malloc(sizeof(struct concesionario));
 	if (con ==  NULL)
 		return NULL;
 
-	INIT_LIST_HEAD(&con->garaje);
+	memset(con, 0, sizeof(struct concesionario));
 
+	INIT_LIST_HEAD(&con->garaje);
+	
 	return con;
 }
 
@@ -39,7 +41,7 @@ void curso_concesionario_free(struct concesionario *con)
 }
 
 void curso_concesionario_attr_unset_coche(struct concesionario *con,
-					  uint32_t pos)
+                                          uint32_t pos)
 {
 	int i = 0;
 	struct coche *c, *tmp;
@@ -62,7 +64,7 @@ void curso_concesionario_attr_unset_coche(struct concesionario *con,
 }
 
 static void curso_concesionario_set_data(struct concesionario *con,
-					 uint16_t attr, const void *data)
+                                         uint16_t attr, const void *data)
 {
 	struct coche *c;
 
