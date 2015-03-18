@@ -1,0 +1,1067 @@
+From 1580a27e5c4e60750c80985bb7f3a3166f6441f4 Mon Sep 17 00:00:00 2001
+From: Enrique Moron Ayuso <emoronayuso@gmail.com>
+Date: Wed, 18 Mar 2015 19:32:16 +0100
+Subject: [PATCH] Ejercicio 1: gestor tareas usando listas
+
+Se icluye el ejercicio 1 del gestor de tareas, usando estructuras
+dinamicas (list_head). Ademas se incluye la configuracion del autoconf y
+automake y la generacion del parche.
+
+Signed-off-by: Enrique Moron Ayuso <emoronayuso@gmail.com>
+---
+ ejercicios/1/Makefile.am                |   2 +
+ ejercicios/1/README.md                  |  25 ++++
+ ejercicios/1/configure.ac               |  18 +++
+ ejercicios/1/makefile_simple            |  20 +++
+ ejercicios/1/src/Makefile.am            |   4 +
+ ejercicios/1/src/gestor_tareas_listas.c | 241 +++++++++++++++++++++++++++++++
+ ejercicios/1/src/gestor_tareas_listas.h |  55 +++++++
+ ejercicios/1/src/list.h                 | 244 ++++++++++++++++++++++++++++++++
+ ejercicios/1/src/main.c                 | 111 +++++++++++++++
+ ejercicios/1/src/tarea_listas.c         | 188 ++++++++++++++++++++++++
+ ejercicios/1/src/tarea_listas.h         |  55 +++++++
+ 11 files changed, 963 insertions(+)
+ create mode 100644 ejercicios/1/Makefile.am
+ create mode 100644 ejercicios/1/README.md
+ create mode 100644 ejercicios/1/configure.ac
+ create mode 100644 ejercicios/1/makefile_simple
+ create mode 100644 ejercicios/1/src/Makefile.am
+ create mode 100644 ejercicios/1/src/gestor_tareas_listas.c
+ create mode 100644 ejercicios/1/src/gestor_tareas_listas.h
+ create mode 100644 ejercicios/1/src/list.h
+ create mode 100644 ejercicios/1/src/main.c
+ create mode 100644 ejercicios/1/src/tarea_listas.c
+ create mode 100644 ejercicios/1/src/tarea_listas.h
+
+diff --git a/ejercicios/1/Makefile.am b/ejercicios/1/Makefile.am
+new file mode 100644
+index 0000000..2c9f908
+--- /dev/null
++++ b/ejercicios/1/Makefile.am
+@@ -0,0 +1,2 @@
++AUTOMAKE_OPTIONS=foreign
++SUBDIRS=src
+diff --git a/ejercicios/1/README.md b/ejercicios/1/README.md
+new file mode 100644
+index 0000000..a8bad4e
+--- /dev/null
++++ b/ejercicios/1/README.md
+@@ -0,0 +1,25 @@
++
++#PASOS PARA COMPILAR Y GENERAR EL FICHERO EJECUTABLE CON AUTOCONF Y AUTOMAKE
++
++##1
++ $ autoconf
++
++##2
++ $ aclocal
++
++##3
++ $ autoconf --add-missing
++
++##4
++ $ ./configure
++
++##5
++ $ make
++
++
++ ## Genera el archivo ejecutable dentro de la carpeta src:
++
++ #Más información en:
++   - http://www.gnu.org/software/automake/manual/autoconf.html
++   - http://www.gnu.org/software/automake/manual/automake.html
++
+diff --git a/ejercicios/1/configure.ac b/ejercicios/1/configure.ac
+new file mode 100644
+index 0000000..cd68ec1
+--- /dev/null
++++ b/ejercicios/1/configure.ac
+@@ -0,0 +1,18 @@
++# Datos iniciales para generar el configure
++AC_INIT([gestor_tareas_listas], [1.0], [emoronayuso@gmail.com])
++AM_INIT_AUTOMAKE([-Wall -Werror foreign])
++AC_CONFIG_SRCDIR([src/main.c])
++
++# Comprueba si tenemos el compilador C (GNU cc)
++AC_PROG_CC
++
++# Comprobamos las bibliotecas
++
++# Comprobamos si estan las cabeceras
++AC_CHECK_HEADERS([stdlib.h stdint.h stdbool.h])
++
++# Comprobamos si existe la funcion malloc en nuestras bibliotecas
++AC_FUNC_MALLOC
++
++# Ficheros que generamos
++AC_OUTPUT(Makefile src/Makefile)
+diff --git a/ejercicios/1/makefile_simple b/ejercicios/1/makefile_simple
+new file mode 100644
+index 0000000..5dd2353
+--- /dev/null
++++ b/ejercicios/1/makefile_simple
+@@ -0,0 +1,20 @@
++NAME=gestor_tareas_listas.out
++BIN_DIR=bin
++
++
++all: build ${NAME}
++
++${NAME}: ${BIN_DIR}/gestor_tareas_listas.o ${BIN_DIR}/tarea_listas.o main.c
++	     gcc -g ${BIN_DIR}/tarea_listas.o ${BIN_DIR}/gestor_tareas_listas.o main.c -o ${NAME} 
++
++${BIN_DIR}/gestor_tareas_listas.o: gestor_tareas_listas.c gestor_tareas_listas.h
++	     gcc -g -c gestor_tareas_listas.c -o ${BIN_DIR}/gestor_tareas_listas.o
++
++${BIN_DIR}/tarea_listas.o: tarea_listas.c tarea_listas.h
++	     gcc -g -c tarea_listas.c -o ${BIN_DIR}/tarea_listas.o
++
++build:
++	mkdir bin
++
++clean:
++	rm -rf bin
+diff --git a/ejercicios/1/src/Makefile.am b/ejercicios/1/src/Makefile.am
+new file mode 100644
+index 0000000..35592d9
+--- /dev/null
++++ b/ejercicios/1/src/Makefile.am
+@@ -0,0 +1,4 @@
++bin_PROGRAMS = gestor_tareas_listas
++#tareas_lista_SOURCES = tareas_listas.c tareas_listas.h
++gestor_tareas_listas_SOURCES = gestor_tareas_listas.c gestor_tareas_listas.h tarea_listas.c tarea_listas.h main.c
++#programa_principal_SOURCES = main.c
+diff --git a/ejercicios/1/src/gestor_tareas_listas.c b/ejercicios/1/src/gestor_tareas_listas.c
+new file mode 100644
+index 0000000..51d9fcb
+--- /dev/null
++++ b/ejercicios/1/src/gestor_tareas_listas.c
+@@ -0,0 +1,241 @@
++#include "gestor_tareas_listas.h"
++#include <string.h>
++
++struct gestor_tareas{
++	struct list_head  lista_tareas;
++	uint32_t          num_tareas;
++	char              *nombre;
++
++	uint32_t          flags;
++};
++
++struct gestor_tareas *curso_gestor_tareas_alloc(void)
++{
++	char * nombre_ini = "Nuevo gestor de tareas";
++	struct gestor_tareas *gt;
++	int i;
++
++	gt = (struct gestor_tareas *)malloc(sizeof(struct gestor_tareas));
++
++	/* Inicializamos las variables */
++	gt->num_tareas = 0;
++	gt->flags &= ~(1 << CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS);
++
++	INIT_LIST_HEAD(&gt->lista_tareas);
++
++	gt->nombre = strdup(nombre_ini);
++
++	return gt;
++}
++
++void curso_gestor_tareas_free(struct gestor_tareas *gt)
++{
++	struct tarea *tarea_actual;
++	struct list_head *pos, *next;
++
++	if (gt->num_tareas != 0) {
++		list_for_each_safe(pos, next, &gt->lista_tareas){
++			tarea_actual = list_entry(pos, struct tarea, head);
++			list_del(pos);
++			curso_tarea_free(tarea_actual);
++		}
++	}
++
++	if (gt->flags & (1 << CURSO_GESTOR_TAREAS_ATTR_NOMBRE))
++		xfree(gt->nombre);
++
++	xfree(gt);
++}
++
++void curso_gestor_tareas_attr_unset(struct gestor_tareas *gt, uint16_t attr,
++                                    uint32_t num)
++{
++
++	struct tarea *tarea_actual;
++	struct list_head *pos, *next;
++	int count = 0;
++
++	if (!(gt->flags & (1 << attr)))
++		return;
++
++	switch (attr) {
++	case CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS:
++		list_for_each_safe(pos, next, &gt->lista_tareas) {
++			tarea_actual = list_entry(pos, struct tarea, head);
++			if (count == num)
++				break;
++			count++;
++		}
++
++		list_del(&(tarea_actual->head));
++		curso_tarea_free(tarea_actual);
++
++		gt->num_tareas--;
++
++		// Si hemos borrado la ultima tarea ponemos el flag a 0
++		if (gt->num_tareas == 0)
++			gt->flags &= ~(1 << attr);
++
++		break;
++	case CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS:
++		break;
++	case CURSO_GESTOR_TAREAS_ATTR_NOMBRE:
++		if (gt->nombre) {
++			xfree(gt->nombre);
++			//gt->nombre = NULL;
++		}
++		gt->flags &= ~(1 << attr);
++		break;
++	}
++
++}
++
++bool curso_gestor_tareas_attr_is_set(const struct gestor_tareas *gt,
++                                     uint16_t attr)
++{
++	return gt->flags & (1 << attr);
++}
++
++/* Funciones get */
++const void *curso_gestor_tareas_attr_get_data(struct gestor_tareas *gt,
++                                              uint16_t attr, uint32_t num)
++{
++	struct tarea *tarea_actual;
++	struct list_head *pos, *next;
++	int count = 0;
++
++	if (!(gt->flags & (1 << attr)))
++		return NULL;
++
++	switch(attr) {
++	case CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS:
++		list_for_each_safe(pos, next, &gt->lista_tareas) {
++			tarea_actual = list_entry(pos, struct tarea, head);
++			if (count == num)
++				break;
++			count++;
++		}
++		return (void *)tarea_actual;
++
++	case CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS:
++		return &(gt->num_tareas);
++
++	case CURSO_GESTOR_TAREAS_ATTR_NOMBRE:
++		return gt->nombre;
++	}
++	return NULL;
++
++}
++
++const char *curso_gestor_tareas_attr_get_str(struct gestor_tareas *gt,
++                                             uint16_t attr)
++{
++	return curso_gestor_tareas_attr_get_data(gt, attr, 0);
++}
++
++
++uint32_t curso_gestor_tareas_attr_get_u32(struct gestor_tareas *gt,
++                                          uint16_t attr)
++{
++	const char *ret = curso_gestor_tareas_attr_get_data(gt, attr, 0);
++	return ret == NULL ? 0 : *((uint32_t *)ret);
++}
++
++struct tarea *curso_gestor_tareas_attr_get_tarea(struct gestor_tareas *gt,
++                                                 uint16_t attr, uint32_t pos)
++{
++	return (struct tarea *)curso_gestor_tareas_attr_get_data(gt, attr, pos);
++}
++
++/* Funciones set */
++void curso_gestor_tareas_attr_set_data(struct gestor_tareas *gt, uint16_t attr,
++                                void *data)
++{
++	struct tarea *tarea_actual;
++	struct list_head *pos, *next;
++	struct tarea *tarea_nueva;
++
++	tarea_nueva = (struct tarea *)data;
++
++
++	if (attr > CURSO_GESTOR_TAREAS_ATTR_MAX)
++		return;
++
++	switch (attr) {
++	case CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS:
++		/* Incluimos la tarea en la lista, segun su prioridad */
++
++		//Si la lista esta vacia
++		if (list_empty(&gt->lista_tareas))
++			list_add(&(tarea_nueva->head), &gt->lista_tareas);
++		else {
++			list_for_each_safe(pos, next, &gt->lista_tareas) {
++				tarea_actual = list_entry(pos, struct tarea,
++                                                          head);
++				if (tarea_actual->prioridad >
++                                    tarea_nueva->prioridad)
++					list_add_tail(&(tarea_nueva->head),
++                                                        pos);
++			}
++		}
++
++		// Ponemos el flag de num_tareas a 1
++		gt->flags |= (1 << CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS);
++
++		gt->num_tareas++;
++		break;
++
++	case CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS:
++		break;
++
++	case CURSO_GESTOR_TAREAS_ATTR_NOMBRE:
++		if (gt->nombre)
++			xfree(gt->nombre);
++		gt->nombre = strdup(data);
++		break;
++	}
++
++	gt->flags |= (1 << attr);
++
++}
++
++void curso_gestor_tareas_attr_set_tarea(struct gestor_tareas *gt,
++                                        uint16_t attr, struct tarea *t)
++{
++	curso_gestor_tareas_attr_set_data(gt, attr, t);
++}
++
++void curso_gestor_tareas_attr_set_u32(struct gestor_tareas *gt, uint16_t attr,
++                                      uint32_t data)
++{
++	curso_gestor_tareas_attr_set_data(gt, attr, &data);
++}
++
++
++void curso_gestor_tareas_attr_set_str(struct gestor_tareas *gt, uint16_t attr,
++                                      char *data)
++{
++	curso_gestor_tareas_attr_set_data(gt, attr, data);
++}
++
++
++/* Función que imprime todas las tareas */
++int curso_gestor_tareas_snprintf(char *buf, size_t size,
++                                 struct gestor_tareas *gt)
++{
++	struct tarea *tarea_actual;
++	struct list_head *pos, *next;
++	int ret = 0;
++
++	if (gt->num_tareas != 0) {
++		list_for_each_safe(pos, next, &gt->lista_tareas){
++			tarea_actual = list_entry(pos, struct tarea, head);
++			ret += curso_tarea_snprintf(buf + ret, size - ret,
++                                                    tarea_actual);
++
++			ret += snprintf(buf + ret, size - ret, "\n");
++		}
++	}
++
++	return ret;
++}
+diff --git a/ejercicios/1/src/gestor_tareas_listas.h b/ejercicios/1/src/gestor_tareas_listas.h
+new file mode 100644
+index 0000000..457739a
+--- /dev/null
++++ b/ejercicios/1/src/gestor_tareas_listas.h
+@@ -0,0 +1,55 @@
++#include "tarea_listas.h"
++#include <stdint.h>
++#include <stdlib.h>
++#include <stdbool.h>
++
++enum {
++	CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS = 0,
++	CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS,
++	CURSO_GESTOR_TAREAS_ATTR_NOMBRE,
++	__CURSO_GESTOR_TAREAS_ATTR_MAX
++};
++
++#define CURSO_GESTOR_TAREAS_ATTR_MAX (__CURSO_GESTOR_TAREAS_ATTR_MAX - 1)
++
++struct gestor_tareas;
++
++struct gestor_tareas *curso_gestor_tareas_alloc(void);
++
++void curso_gestor_tareas_free(struct gestor_tareas *gt);
++
++void curso_gestor_tareas_attr_unset(struct gestor_tareas *gt, uint16_t attr,
++                                    uint32_t num);
++
++bool curso_gestor_tareas_attr_is_set(const struct gestor_tareas *gt,
++                                     uint16_t attr);
++
++/* Funciones get */
++const void *curso_gestor_tareas_attr_get_data(struct gestor_tareas *gt,
++                                              uint16_t attr, uint32_t num);
++
++const char *curso_gestor_tareas_attr_get_str(struct gestor_tareas *gt,
++                                          uint16_t attr);
++
++uint32_t curso_gestor_tareas_attr_get_u32(struct gestor_tareas *gt,
++                                          uint16_t attr);
++
++struct tarea *curso_gestor_tareas_attr_get_tarea(struct gestor_tareas *gt,
++                                                 uint16_t attr, uint32_t pos);
++
++/* Funciones set */
++void curso_gestor_tareas_attr_set_data(struct gestor_tareas *gt, uint16_t attr,
++                                void *data);
++
++void curso_gestor_tareas_attr_set_tarea(struct gestor_tareas *gt, uint16_t attr,
++                                        struct tarea *t);
++
++void curso_gestor_tareas_attr_set_u32(struct gestor_tareas *gt, uint16_t attr,
++                                      uint32_t data);
++
++void curso_gestor_tareas_attr_set_str(struct gestor_tareas *gt, uint16_t attr,
++                                      char *data);
++
++int curso_gestor_tareas_snprintf(char *buf, size_t size,
++                                 struct gestor_tareas *gt);
++
+diff --git a/ejercicios/1/src/list.h b/ejercicios/1/src/list.h
+new file mode 100644
+index 0000000..3a76885
+--- /dev/null
++++ b/ejercicios/1/src/list.h
+@@ -0,0 +1,244 @@
++#ifndef __LIST_H
++#define __LIST_H
++
++/* This file is from Linux Kernel (include/linux/list.h) 
++ * and modified by simply removing hardware prefetching of list items. 
++ * Here by copyright, credits attributed to wherever they belong.
++ * Kulesh Shanmugasundaram (kulesh [squiggly] isis.poly.edu)
++ */
++
++/*
++ * Simple doubly linked list implementation.
++ *
++ * Some of the internal functions ("__xxx") are useful when
++ * manipulating whole lists rather than single entries, as
++ * sometimes we already know the next/prev entries and we can
++ * generate better code by using them directly rather than
++ * using the generic single-entry routines.
++ */
++
++struct list_head {
++	struct list_head *next, *prev;
++};
++
++#define LIST_HEAD_INIT(name) { &(name), &(name) }
++
++#define LIST_HEAD(name) \
++	struct list_head name = LIST_HEAD_INIT(name)
++
++#define INIT_LIST_HEAD(ptr) do { \
++	(ptr)->next = (ptr); (ptr)->prev = (ptr); \
++} while (0)
++
++/*
++ * Insert a new entry between two known consecutive entries. 
++ *
++ * This is only for internal list manipulation where we know
++ * the prev/next entries already!
++ */
++static inline void __list_add(struct list_head *new,
++			      struct list_head *prev,
++			      struct list_head *next)
++{
++	next->prev = new;
++	new->next = next;
++	new->prev = prev;
++	prev->next = new;
++}
++
++/**
++ * list_add - add a new entry
++ * @new: new entry to be added
++ * @head: list head to add it after
++ *
++ * Insert a new entry after the specified head.
++ * This is good for implementing stacks.
++ */
++static inline void list_add(struct list_head *new, struct list_head *head)
++{
++	__list_add(new, head, head->next);
++}
++
++/**
++ * list_add_tail - add a new entry
++ * @new: new entry to be added
++ * @head: list head to add it before
++ *
++ * Insert a new entry before the specified head.
++ * This is useful for implementing queues.
++ */
++static inline void list_add_tail(struct list_head *new, struct list_head *head)
++{
++	__list_add(new, head->prev, head);
++}
++
++/*
++ * Delete a list entry by making the prev/next entries
++ * point to each other.
++ *
++ * This is only for internal list manipulation where we know
++ * the prev/next entries already!
++ */
++static inline void __list_del(struct list_head *prev, struct list_head *next)
++{
++	next->prev = prev;
++	prev->next = next;
++}
++
++/**
++ * list_del - deletes entry from list.
++ * @entry: the element to delete from the list.
++ * Note: list_empty on entry does not return true after this, the entry is in an undefined state.
++ */
++static inline void list_del(struct list_head *entry)
++{
++	__list_del(entry->prev, entry->next);
++	entry->next = (void *) 0;
++	entry->prev = (void *) 0;
++}
++
++/**
++ * list_del_init - deletes entry from list and reinitialize it.
++ * @entry: the element to delete from the list.
++ */
++static inline void list_del_init(struct list_head *entry)
++{
++	__list_del(entry->prev, entry->next);
++	INIT_LIST_HEAD(entry); 
++}
++
++/**
++ * list_move - delete from one list and add as another's head
++ * @list: the entry to move
++ * @head: the head that will precede our entry
++ */
++static inline void list_move(struct list_head *list, struct list_head *head)
++{
++        __list_del(list->prev, list->next);
++        list_add(list, head);
++}
++
++/**
++ * list_move_tail - delete from one list and add as another's tail
++ * @list: the entry to move
++ * @head: the head that will follow our entry
++ */
++static inline void list_move_tail(struct list_head *list,
++				  struct list_head *head)
++{
++        __list_del(list->prev, list->next);
++        list_add_tail(list, head);
++}
++
++/**
++ * list_empty - tests whether a list is empty
++ * @head: the list to test.
++ */
++static inline int list_empty(struct list_head *head)
++{
++	return head->next == head;
++}
++
++static inline void __list_splice(struct list_head *list,
++				 struct list_head *head)
++{
++	struct list_head *first = list->next;
++	struct list_head *last = list->prev;
++	struct list_head *at = head->next;
++
++	first->prev = head;
++	head->next = first;
++
++	last->next = at;
++	at->prev = last;
++}
++
++/**
++ * list_splice - join two lists
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ */
++static inline void list_splice(struct list_head *list, struct list_head *head)
++{
++	if (!list_empty(list))
++		__list_splice(list, head);
++}
++
++/**
++ * list_splice_init - join two lists and reinitialise the emptied list.
++ * @list: the new list to add.
++ * @head: the place to add it in the first list.
++ *
++ * The list at @list is reinitialised
++ */
++static inline void list_splice_init(struct list_head *list,
++				    struct list_head *head)
++{
++	if (!list_empty(list)) {
++		__list_splice(list, head);
++		INIT_LIST_HEAD(list);
++	}
++}
++
++/**
++ * list_entry - get the struct for this entry
++ * @ptr:	the &struct list_head pointer.
++ * @type:	the type of the struct this is embedded in.
++ * @member:	the name of the list_struct within the struct.
++ */
++#define list_entry(ptr, type, member) \
++	((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member)))
++
++/**
++ * list_for_each	-	iterate over a list
++ * @pos:	the &struct list_head to use as a loop counter.
++ * @head:	the head for your list.
++ */
++#define list_for_each(pos, head) \
++	for (pos = (head)->next; pos != (head); \
++        	pos = pos->next)
++/**
++ * list_for_each_prev	-	iterate over a list backwards
++ * @pos:	the &struct list_head to use as a loop counter.
++ * @head:	the head for your list.
++ */
++#define list_for_each_prev(pos, head) \
++	for (pos = (head)->prev; pos != (head); \
++        	pos = pos->prev)
++        	
++/**
++ * list_for_each_safe	-	iterate over a list safe against removal of list entry
++ * @pos:	the &struct list_head to use as a loop counter.
++ * @n:		another &struct list_head to use as temporary storage
++ * @head:	the head for your list.
++ */
++#define list_for_each_safe(pos, n, head) \
++	for (pos = (head)->next, n = pos->next; pos != (head); \
++		pos = n, n = pos->next)
++
++/**
++ * list_for_each_entry	-	iterate over list of given type
++ * @pos:	the type * to use as a loop counter.
++ * @head:	the head for your list.
++ * @member:	the name of the list_struct within the struct.
++ */
++#define list_for_each_entry(pos, head, member)				\
++	for (pos = list_entry((head)->next, typeof(*pos), member);	\
++	     &pos->member != (head); 					\
++	     pos = list_entry(pos->member.next, typeof(*pos), member))
++
++/**
++ * list_for_each_entry_safe - iterate over list of given type safe against removal of list entry
++ * @pos:	the type * to use as a loop counter.
++ * @n:		another type * to use as temporary storage
++ * @head:	the head for your list.
++ * @member:	the name of the list_struct within the struct.
++ */
++#define list_for_each_entry_safe(pos, n, head, member)			\
++	for (pos = list_entry((head)->next, typeof(*pos), member),	\
++		n = list_entry(pos->member.next, typeof(*pos), member);	\
++	     &pos->member != (head); 					\
++	     pos = n, n = list_entry(n->member.next, typeof(*n), member))
++
++
++#endif
+diff --git a/ejercicios/1/src/main.c b/ejercicios/1/src/main.c
+new file mode 100644
+index 0000000..5c1469a
+--- /dev/null
++++ b/ejercicios/1/src/main.c
+@@ -0,0 +1,111 @@
++#include "gestor_tareas_listas.h"
++#include <assert.h>
++#include <string.h>
++
++int main(void)
++{
++	struct tarea *t1, *t2, *t3;
++	struct gestor_tareas *gt;
++	char buffer[4000];
++
++	printf("\n --- Creamos 3 tareas.....\n");
++	t1 = curso_tarea_alloc();
++	curso_tarea_attr_set_str(t1, CURSO_TAREA_ATTR_NOMBRE_TAREA,
++				"Primera tarea");
++	assert(0 == strcmp(curso_tarea_attr_get_str(t1,
++                           CURSO_TAREA_ATTR_NOMBRE_TAREA),"Primera tarea"));
++
++	curso_tarea_attr_set_str(t1, CURSO_TAREA_ATTR_DESC_TAREA,
++				"Esta es la descripción de la tarea 1");
++	curso_tarea_attr_set_str(t1, CURSO_TAREA_ATTR_USUARIO,
++				"Fulanito");
++	curso_tarea_attr_set_u32(t1, CURSO_TAREA_ATTR_ID, 1457);
++	curso_tarea_attr_set_u16(t1, CURSO_TAREA_ATTR_PRIORIDAD, 23);
++	curso_tarea_snprintf(buffer, sizeof(buffer), t1);
++	printf("%s", buffer);
++
++	t2 = curso_tarea_alloc();
++	curso_tarea_attr_set_str(t2, CURSO_TAREA_ATTR_NOMBRE_TAREA,
++				"Segunda tarea");
++	curso_tarea_attr_set_str(t2, CURSO_TAREA_ATTR_DESC_TAREA,
++				"Esta es la descripción de la tarea 2");
++	curso_tarea_attr_set_str(t2, CURSO_TAREA_ATTR_USUARIO,
++				"Benganito");
++	curso_tarea_attr_set_u32(t2, CURSO_TAREA_ATTR_ID, 1887);
++	curso_tarea_attr_set_u16(t2, CURSO_TAREA_ATTR_PRIORIDAD, 2);
++	curso_tarea_snprintf(buffer, sizeof(buffer), t2);
++	printf("%s", buffer);
++
++	t3 = curso_tarea_alloc();
++	curso_tarea_attr_set_str(t3, CURSO_TAREA_ATTR_NOMBRE_TAREA,
++				"Tercera tarea");
++	curso_tarea_attr_set_str(t3, CURSO_TAREA_ATTR_DESC_TAREA,
++				"Esta es la descripción de la tarea 3");
++	curso_tarea_attr_set_str(t3, CURSO_TAREA_ATTR_USUARIO,
++				"Bar");
++	curso_tarea_attr_set_u32(t3, CURSO_TAREA_ATTR_ID, 1986);
++	curso_tarea_attr_set_u16(t3, CURSO_TAREA_ATTR_PRIORIDAD, 7);
++	curso_tarea_snprintf(buffer, sizeof(buffer), t3);
++	printf("%s", buffer);
++
++
++	printf("\n --- Creamos un gestor de tareas.....\n");
++	gt = curso_gestor_tareas_alloc();
++
++	curso_gestor_tareas_attr_set_str(gt, CURSO_GESTOR_TAREAS_ATTR_NOMBRE,
++                                         "Nombre del gestor de tareas");
++
++	assert(0 == strcmp(curso_gestor_tareas_attr_get_str(gt,
++                                              CURSO_GESTOR_TAREAS_ATTR_NOMBRE),
++                                              "Nombre del gestor de tareas"));
++
++	printf("\n --- Incluimos las tareas en el gestor de tareas....\n");
++	curso_gestor_tareas_attr_set_tarea(gt, 
++                                          CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS,
++					  t1);
++	
++	curso_gestor_tareas_attr_set_tarea(gt, 
++                                          CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS,
++					  t2);
++
++	curso_gestor_tareas_attr_set_tarea(gt, 
++                                          CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS,
++					  t3);
++
++	assert(3 == curso_gestor_tareas_attr_get_u32(gt,
++                                          CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS));
++
++	printf("\n --- Mostramos todas las tareas\n");
++	curso_gestor_tareas_snprintf(buffer, sizeof(buffer), gt);
++	printf("%s", buffer);
++
++	printf("\n --- La tarea de mayor prioridad es:");
++	curso_tarea_snprintf(buffer, sizeof(buffer),
++                             curso_gestor_tareas_attr_get_tarea(gt,
++                             CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS, 0)
++                            );
++	printf("%s", buffer);
++
++
++	printf("\n --- Borramos la tarea de mayor prioridad\n");
++	curso_gestor_tareas_attr_unset(gt, 
++                                     CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS, 0);
++	
++	assert(2 == curso_gestor_tareas_attr_get_u32(gt,
++                                          CURSO_GESTOR_TAREAS_ATTR_NUM_TAREAS));
++
++	printf("\n --- La tarea de mayor prioridad ahora es:");
++	curso_tarea_snprintf(buffer, sizeof(buffer),
++                             curso_gestor_tareas_attr_get_tarea(gt,
++                             CURSO_GESTOR_TAREAS_ATTR_LIST_TAREAS, 0)
++                            );
++	printf("%s", buffer);
++
++
++	printf("\n --- Liberamos la memoria, eliminando las tareas y " \
++			"el gestor de tareas ....\n");
++	curso_gestor_tareas_free(gt);
++
++
++
++}
+diff --git a/ejercicios/1/src/tarea_listas.c b/ejercicios/1/src/tarea_listas.c
+new file mode 100644
+index 0000000..e6fab29
+--- /dev/null
++++ b/ejercicios/1/src/tarea_listas.c
+@@ -0,0 +1,188 @@
++#include "tarea_listas.h"
++#include <string.h>
++
++/*
++struct tarea{
++	struct list_head head;
++
++	uint32_t     id;
++	const char   *nombre_tarea;
++	const char   *desc_tarea;
++	const char   *usuario;
++	uint16_t     prioridad;
++
++	uint32_t     flags;
++};
++*/
++
++struct tarea *curso_tarea_alloc(void)
++{
++	char * nombre_tarea_ini = "Nombre por defecto de la tarea";
++	char * desc_tarea_ini = "Descripción por defecto de la tarea";
++	char * usuario_ini = "Usuario por defecto de la tarea";
++	struct tarea *t;
++
++	t = (struct tarea *)malloc(sizeof(struct tarea));
++	/* Inicializamos las variables */
++
++	t->nombre_tarea = strdup(nombre_tarea_ini);
++	t->desc_tarea = strdup(desc_tarea_ini);
++	t->usuario = strdup(usuario_ini);
++	t->prioridad = 50;
++
++	return t;
++}
++
++void curso_tarea_free(struct tarea *t)
++{
++	if (t->flags & (1 << CURSO_TAREA_ATTR_NOMBRE_TAREA))
++		xfree(t->nombre_tarea);
++
++	if (t->flags & (1 << CURSO_TAREA_ATTR_DESC_TAREA))
++		xfree(t->desc_tarea);
++
++	if (t->flags & (1 << CURSO_TAREA_ATTR_USUARIO))
++		xfree(t->usuario);
++
++	xfree(t);
++}
++
++bool curso_tarea_attr_is_set(const struct tarea *t, uint16_t attr)
++{
++	return t->flags & (1 << attr);
++}
++
++void curso_tarea_attr_unset(struct tarea *t, uint16_t attr)
++{
++	if (!(t->flags & (1 << attr)))
++		return;
++
++	switch (attr) {
++	case CURSO_TAREA_ATTR_NOMBRE_TAREA:
++		if (t->nombre_tarea) {
++			xfree(t->nombre_tarea);
++			t->nombre_tarea = NULL;
++		}
++		break;
++	case CURSO_TAREA_ATTR_DESC_TAREA:
++		if (t->desc_tarea) {
++			xfree(t->desc_tarea);
++			t->desc_tarea = NULL;
++		}
++		break;
++	case CURSO_TAREA_ATTR_USUARIO:
++		if (t->usuario) {
++			xfree(t->usuario);
++			t->usuario = NULL;
++		}
++		break;
++	case CURSO_TAREA_ATTR_ID:
++		break;
++	case CURSO_TAREA_ATTR_PRIORIDAD:
++		break;
++	}
++
++	t->flags &= ~(1 << attr);
++}
++
++void curso_tarea_set_data(struct tarea *t, uint16_t attr, const void *data,
++                          uint16_t data_len)
++{
++	if (attr > CURSO_TAREA_ATTR_MAX)
++		return;
++
++	switch (attr) {
++	case CURSO_TAREA_ATTR_NOMBRE_TAREA:
++		if (t->nombre_tarea)
++			xfree(t->nombre_tarea);
++		t->nombre_tarea = strdup(data);
++		break;
++
++	case CURSO_TAREA_ATTR_DESC_TAREA:
++		if (t->desc_tarea)
++			xfree(t->desc_tarea);
++		t->desc_tarea = strdup(data);
++		break;
++
++	case CURSO_TAREA_ATTR_USUARIO:
++		if (t->usuario)
++			xfree(t->usuario);
++		t->usuario = strdup(data);
++		break;
++
++	case CURSO_TAREA_ATTR_ID:
++		t->id = *((uint32_t *)data);
++		break;
++
++	case CURSO_TAREA_ATTR_PRIORIDAD:
++		t->prioridad = *((uint16_t *)data);
++		break;
++	}
++
++	t->flags |= (1 << attr);
++}
++
++
++void curso_tarea_attr_set_u32(struct tarea *t, uint16_t attr, uint32_t data)
++{
++	curso_tarea_set_data(t, attr, &data, sizeof(uint32_t));
++}
++
++void curso_tarea_attr_set_u16(struct tarea *t, uint16_t attr, uint32_t data)
++{
++	curso_tarea_set_data(t, attr, &data, sizeof(uint16_t));
++}
++
++void curso_tarea_attr_set_str(struct tarea *t, uint16_t attr, const char *data)
++{
++	curso_tarea_set_data(t, attr, data, 0);
++}
++
++const void *curso_tarea_attr_get_data(struct tarea *t, uint16_t attr)
++{
++	if (!(t->flags & (1 << attr)))
++		return NULL;
++
++	switch (attr) {
++	case CURSO_TAREA_ATTR_NOMBRE_TAREA:
++		return t->nombre_tarea;
++	case CURSO_TAREA_ATTR_DESC_TAREA:
++		return t->desc_tarea;
++	case CURSO_TAREA_ATTR_USUARIO:
++		return t->usuario;
++	case CURSO_TAREA_ATTR_ID:
++		return &(t->id);
++	case CURSO_TAREA_ATTR_PRIORIDAD:
++		return &(t->prioridad);
++	}
++
++	return NULL;
++}
++
++uint32_t curso_tarea_attr_get_u32(struct tarea *t, uint16_t attr)
++{
++	const char *ret = curso_tarea_attr_get_data(t, attr);
++	return ret == NULL ? 0 : *((uint32_t *)ret);
++}
++
++uint16_t curso_tarea_attr_get_u16(struct tarea *t, uint16_t attr)
++{
++	const char *ret = curso_tarea_attr_get_data(t, attr);
++	return ret == NULL ? 0 : *((uint16_t *)ret);
++}
++
++const char *curso_tarea_attr_get_str(struct tarea *t, uint16_t attr)
++{
++	return (char *)curso_tarea_attr_get_data(t, attr);
++}
++
++int curso_tarea_snprintf(char *buf, size_t size, struct tarea *t)
++{
++	return snprintf(buf, size, "\nLa tarea número %d está enviada por %s." \
++			"\nSe llama %s y la descripción es %s. " \
++			"\nCon prioridad %d \n",
++			t->id, t->usuario, t->nombre_tarea, t->desc_tarea,
++			t->prioridad
++                       );
++}
++
+diff --git a/ejercicios/1/src/tarea_listas.h b/ejercicios/1/src/tarea_listas.h
+new file mode 100644
+index 0000000..910f4ac
+--- /dev/null
++++ b/ejercicios/1/src/tarea_listas.h
+@@ -0,0 +1,55 @@
++#include <stdio.h>
++#include <stdint.h>
++#include <stdlib.h>
++#include <stdbool.h>
++#include "list.h"
++
++/* Estructura tarea "publica" para poder utilizarla con list_head */
++struct tarea{
++	struct list_head head;
++
++	uint32_t     id;
++	const char   *nombre_tarea;
++	const char   *desc_tarea;
++	const char   *usuario;
++	uint16_t     prioridad;
++
++	uint32_t     flags;
++};
++
++
++enum {
++	CURSO_TAREA_ATTR_NOMBRE_TAREA = 0,
++	CURSO_TAREA_ATTR_DESC_TAREA,
++	CURSO_TAREA_ATTR_ID,
++	CURSO_TAREA_ATTR_USUARIO,
++	CURSO_TAREA_ATTR_PRIORIDAD,
++	__CURSO_TAREA_ATTR_MAX
++};
++
++#define CURSO_TAREA_ATTR_MAX (__CURSO_TAREA_ATTR_MAX - 1)
++
++#define xfree(ptr)	free((void *) ptr);
++
++struct tarea;
++
++struct tarea *curso_tarea_alloc(void);
++void curso_tarea_free(struct tarea *t);
++
++bool curso_tarea_attr_is_set(const struct tarea *t, uint16_t attr);
++
++void curso_tarea_attr_unset(struct tarea *t, uint16_t attr);
++
++void curso_tarea_attr_set_data(struct tarea *t, uint16_t attr, const void *data,
++                               uint16_t data_len);
++void curso_tarea_attr_set_u32(struct tarea *t, uint16_t attr, uint32_t data);
++void curso_tarea_attr_set_u16(struct tarea *t, uint16_t attr, uint32_t data);
++void curso_tarea_attr_set_str(struct tarea *t, uint16_t attr, const char *data);
++
++const void *curso_tarea_attr_get_data(struct tarea *t, uint16_t attr);
++uint32_t curso_tarea_attr_get_u32(struct tarea *t, uint16_t attr);
++uint16_t curso_tarea_attr_get_u16(struct tarea *t, uint16_t attr);
++const char *curso_tarea_attr_get_str(struct tarea *t, uint16_t attr);
++
++int curso_tarea_snprintf(char *buf, size_t size, struct tarea *t);
++
+-- 
+2.1.4
+
