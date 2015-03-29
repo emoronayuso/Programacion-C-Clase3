@@ -4,7 +4,7 @@
 struct coche *curso_coche_alloc(void)
 {
 	struct coche *c = (struct coche *)malloc(sizeof(struct coche));
-	
+
 	memset(c, 0, sizeof(struct coche));
 
 	return c;
@@ -52,7 +52,7 @@ void curso_coche_attr_unset(struct coche *c, uint16_t attr)
 }
 
 void curso_coche_set_data(struct coche *c, uint16_t attr, const void *data,
-			  uint32_t data_len)
+                          uint32_t data_len)
 {
 	if (attr > CURSO_COCHE_ATTR_MAX)
 		return;

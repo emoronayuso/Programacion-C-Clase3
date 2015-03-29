@@ -19,7 +19,7 @@ struct concesionario *curso_concesionario_alloc(void)
 	memset(con, 0, sizeof(struct concesionario));
 
 	INIT_LIST_HEAD(&con->garaje);
-	
+
 	return con;
 }
 
@@ -104,13 +104,13 @@ void curso_concesionario_attr_set_str(struct concesionario *con,
 }
 
 void curso_concesionario_attr_set_coche(struct concesionario *con,
-					  uint16_t attr, struct coche *data)
+                                        uint16_t attr, struct coche *data)
 {
 	curso_concesionario_set_data(con, attr, data);
 }
 
 const void *curso_concesionario_attr_get_data(struct concesionario *con,
-					      uint16_t attr, uint32_t pos)
+                                              uint16_t attr, uint32_t pos)
 {
 	int i = 0;
 	struct coche *c;
@@ -137,27 +137,27 @@ const void *curso_concesionario_attr_get_data(struct concesionario *con,
 }
 
 uint32_t curso_concesionario_attr_get_u32(struct concesionario *con,
-					  uint16_t attr)
+                                          uint16_t attr)
 {
 	const void *ret = curso_concesionario_attr_get_data(con, attr, 0);
 	return ret == NULL ? 0 : *((uint32_t *)ret);
 }
 
 const char *curso_concesionario_attr_get_str(struct concesionario *con,
-					     uint16_t attr)
+                                             uint16_t attr)
 {
 	return curso_concesionario_attr_get_data(con, attr, 0);
 }
 
 struct coche *curso_concesionario_attr_get_coche(struct concesionario *con,
-					         uint16_t attr, uint32_t pos)
+                                                 uint16_t attr, uint32_t pos)
 {
 	return (struct coche *)curso_concesionario_attr_get_data(con, attr,
-								 pos);
+                                                                 pos);
 }
 
 int curso_concesionario_snprintf(char *buf, size_t size,
-				 struct concesionario *con)
+                                 struct concesionario *con)
 {
 	int ret = 0;
 	struct coche *c;
