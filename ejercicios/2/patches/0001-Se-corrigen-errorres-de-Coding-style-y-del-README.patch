@@ -1,0 +1,154 @@
+From c2f0e2cf9d6ed72d7abeb8804831f1538e741555 Mon Sep 17 00:00:00 2001
+From: Enrique Moron Ayuso <emoronayuso@gmail.com>
+Date: Sun, 29 Mar 2015 16:30:11 +0200
+Subject: [PATCH] Se corrigen errorres de Coding style y del README
+
+Signed-off-by: Enrique Moron Ayuso <emoronayuso@gmail.com>
+---
+ ejercicios/2/README.md           | 20 +++++++++++---------
+ ejercicios/2/src/coche.c         |  4 ++--
+ ejercicios/2/src/concesionario.c | 16 ++++++++--------
+ 3 files changed, 21 insertions(+), 19 deletions(-)
+
+diff --git a/ejercicios/2/README.md b/ejercicios/2/README.md
+index bb8a356..5a884cf 100644
+--- a/ejercicios/2/README.md
++++ b/ejercicios/2/README.md
+@@ -1,11 +1,12 @@
+ 
+-### 10 PASOS PARA COMPILAR Y GENERAR EL FICHERO EJECUTABLE CON AUTOCONF Y AUTOMAKE
++10 PASOS PARA COMPILAR Y GENERAR EL FICHERO EJECUTABLE CON AUTOCONF Y AUTOMAKE
++==============================================================================
+ 
+ 1) Creamos el fichero configure.ac en la carpeta principal del proyecto.
+ 
+ 2) Ejecutamos aclocal. Este comando nos genera un fichero llamado aclocal.m4, que contendrá todos los comando de Makefile que nos harań falta para compilar nuestro proyecto.
+ 
+- $ aclocal
++    $ aclocal
+ 
+ 3) Creamos el fichero Makefile.am en la carpeta principal del proyecto.
+ 
+@@ -13,27 +14,28 @@
+ 
+ 5) Ejecutamos autoconf. Este comando nos creará una carpeta llamada autom4te.cache y el ejecutable configure
+ 
+- $ autoconf
+-
++    $ autoconf
+ 
+ 6) Ejecutamos automake. Este comando a partir de los ficheros configure.ac y Makefile.am, genera una ficheros llamados Makefile.in, con una serie de comprobaciones de sintaxis.
+  
+- $ automake --add-missing
++    $ automake --add-missing
++
++7) Ejecutamos de nuevo autoconf, esto genera de nuevo el ejecutable configure teniendo en cuenta las comprobaciones anteriores
+ 
+-7) Ejecutamos de nuevo autoconf, esto genera de nueco el ejecutable configure teniendo en cuenta las comprobaciones anteriores
++    $ autoconf
+ 
+ 8) Ejecutamos el archivo configure, que pondrá en orden todos los prerequisitos para compilar nuestro programa:
+ 
+- $ ./configure
++    $ ./configure
+ 
+ 9) Compilamos nuestro programa:
+ 
+- $ make
++    $ make
+ 
+ 10) Entramos en la carpeta src y tendremos nuestro programa ejecutable.
+ 
+ 
+- #Más información en:
++## Más información en:
+    - http://www.gnu.org/software/automake/manual/autoconf.html
+    - http://www.gnu.org/software/automake/manual/automake.html
+ 
+diff --git a/ejercicios/2/src/coche.c b/ejercicios/2/src/coche.c
+index 62f7025..cee89bd 100644
+--- a/ejercicios/2/src/coche.c
++++ b/ejercicios/2/src/coche.c
+@@ -4,7 +4,7 @@
+ struct coche *curso_coche_alloc(void)
+ {
+ 	struct coche *c = (struct coche *)malloc(sizeof(struct coche));
+-	
++
+ 	memset(c, 0, sizeof(struct coche));
+ 
+ 	return c;
+@@ -52,7 +52,7 @@ void curso_coche_attr_unset(struct coche *c, uint16_t attr)
+ }
+ 
+ void curso_coche_set_data(struct coche *c, uint16_t attr, const void *data,
+-			  uint32_t data_len)
++                          uint32_t data_len)
+ {
+ 	if (attr > CURSO_COCHE_ATTR_MAX)
+ 		return;
+diff --git a/ejercicios/2/src/concesionario.c b/ejercicios/2/src/concesionario.c
+index a60bdd0..b454491 100644
+--- a/ejercicios/2/src/concesionario.c
++++ b/ejercicios/2/src/concesionario.c
+@@ -19,7 +19,7 @@ struct concesionario *curso_concesionario_alloc(void)
+ 	memset(con, 0, sizeof(struct concesionario));
+ 
+ 	INIT_LIST_HEAD(&con->garaje);
+-	
++
+ 	return con;
+ }
+ 
+@@ -104,13 +104,13 @@ void curso_concesionario_attr_set_str(struct concesionario *con,
+ }
+ 
+ void curso_concesionario_attr_set_coche(struct concesionario *con,
+-					  uint16_t attr, struct coche *data)
++                                        uint16_t attr, struct coche *data)
+ {
+ 	curso_concesionario_set_data(con, attr, data);
+ }
+ 
+ const void *curso_concesionario_attr_get_data(struct concesionario *con,
+-					      uint16_t attr, uint32_t pos)
++                                              uint16_t attr, uint32_t pos)
+ {
+ 	int i = 0;
+ 	struct coche *c;
+@@ -137,27 +137,27 @@ const void *curso_concesionario_attr_get_data(struct concesionario *con,
+ }
+ 
+ uint32_t curso_concesionario_attr_get_u32(struct concesionario *con,
+-					  uint16_t attr)
++                                          uint16_t attr)
+ {
+ 	const void *ret = curso_concesionario_attr_get_data(con, attr, 0);
+ 	return ret == NULL ? 0 : *((uint32_t *)ret);
+ }
+ 
+ const char *curso_concesionario_attr_get_str(struct concesionario *con,
+-					     uint16_t attr)
++                                             uint16_t attr)
+ {
+ 	return curso_concesionario_attr_get_data(con, attr, 0);
+ }
+ 
+ struct coche *curso_concesionario_attr_get_coche(struct concesionario *con,
+-					         uint16_t attr, uint32_t pos)
++                                                 uint16_t attr, uint32_t pos)
+ {
+ 	return (struct coche *)curso_concesionario_attr_get_data(con, attr,
+-								 pos);
++                                                                 pos);
+ }
+ 
+ int curso_concesionario_snprintf(char *buf, size_t size,
+-				 struct concesionario *con)
++                                 struct concesionario *con)
+ {
+ 	int ret = 0;
+ 	struct coche *c;
+-- 
+2.1.4
+
