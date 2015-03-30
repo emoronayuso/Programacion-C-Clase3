@@ -1,0 +1,248 @@
+From d153704864e4137c7cc861d5cceb3b0155bbbec6 Mon Sep 17 00:00:00 2001
+From: Enrique Moron Ayuso <emoronayuso@gmail.com>
+Date: Mon, 30 Mar 2015 13:55:08 +0200
+Subject: [PATCH] Se corrigen errores de algunos de los ejemplos
+
+Se corrige el tratamiento de erores de los ejemplos del uso de manejadores de
+ficheros.
+
+Signed-off-by: Enrique Moron Ayuso <emoronayuso@gmail.com>
+---
+ ejemplos/5/fopclo.c     | 21 ++++++++++++++-------
+ ejemplos/6/fgetc.c      | 32 +++++++++++++++++++++-----------
+ ejemplos/7/fgets.c      | 20 +++++++++++++++-----
+ ejemplos/8/freadwrite.c | 23 ++++++++++++++++++-----
+ ejemplos/9/fprintf.c    | 18 ++++++++++++++----
+ 5 files changed, 82 insertions(+), 32 deletions(-)
+
+diff --git a/ejemplos/5/fopclo.c b/ejemplos/5/fopclo.c
+index 39ee009..d7a1703 100644
+--- a/ejemplos/5/fopclo.c
++++ b/ejemplos/5/fopclo.c
+@@ -5,19 +5,26 @@ int main()
+ 	FILE *fichero;
+ 	char nombre[10] = "datos.dat";
+ 
+-	fichero = fopen(nombre, "w");
+-	printf("Fichero: %s -> ", nombre);
+-	if (fichero) {
+-		printf("creado (ABIERTO)\n");
+-	} else {
+-		printf("Error (NO ABIERTO)\n");
++	if ( (fichero = fopen(nombre, "w")) == NULL) {
++		perror("\nEl fichero no se ha abierto correctamente\n");
+ 		return -1;
+ 	}
+ 
++	printf("El fichero con identificador %p, se ha abirto correctamente\n",
++               fichero);
++
++	/* printf("Fichero: %s -> ", nombre); */
++	/* if (fichero) { */
++	/* 	printf("creado (ABIERTO)\n"); */
++	/* } else { */
++	/* 	printf("Error (NO ABIERTO)\n"); */
++	/* 	return -1; */
++	/* } */
++
+ 	if (!fclose(fichero)) {
+ 		printf("Fichero cerrado\n");
+ 	} else {
+-		printf("Error: fichero NO CERRADO\n");
++		perror("Fichero NO CERRADO\n");
+ 		return -1;
+ 	}
+ 
+diff --git a/ejemplos/6/fgetc.c b/ejemplos/6/fgetc.c
+index e3646b6..adb99ab 100644
+--- a/ejemplos/6/fgetc.c
++++ b/ejemplos/6/fgetc.c
+@@ -3,12 +3,12 @@
+ 
+ void genera_mensaje(FILE *file)
+ {
+-	fputc('A', file);
+-	fputc('l', file);
+-	fputc('v', file);
+-	fputc('a', file);
+-	fputc('r', file);
+-	fputc('o', file);
++	fputc('K', file);
++	fputc('i', file);
++	fputc('i', file);
++	fputc('k', file);
++	fputc('e', file);
++	fputc('L', file);
+ 	rewind(file);
+ }
+ 
+@@ -16,17 +16,21 @@ int main(void)
+ {
+ 	FILE *file = fopen("datos.dat", "a+");
+ 	char *code;
+-	size_t n = 0;
+ 	int c;
+ 
+-	if (file == NULL)
++	if (file == NULL) {
++		perror("No se ha abierto el fichero correctamente");
+ 		return -1;
++	}
+ 
+ 	genera_mensaje(file);
+ 
+-	code = malloc(1000);
+-	while ((c = fgetc(file)) != EOF)
+-	{
++	if ((code = (char *) malloc(1001)) == NULL ) {
++		perror("No se ha podido reservar memoria");
++		return -1;
++	}
++
++	while ((c = fgetc(file)) != EOF) {
+ 		code[n++] = (char) c;
+ 	}
+ 
+@@ -34,5 +38,11 @@ int main(void)
+ 	printf("El texto leido es %s\n", code);
+ 
+ 	free(code);
++
++	if (fclose(file) == EOF){
++		perror("El fichero no se ha cerrado correctamente");
++		return -1;
++	}
++
+ 	return 0;
+ }
+diff --git a/ejemplos/7/fgets.c b/ejemplos/7/fgets.c
+index c2f2ca6..645c92f 100644
+--- a/ejemplos/7/fgets.c
++++ b/ejemplos/7/fgets.c
+@@ -3,7 +3,7 @@
+ 
+ void genera_mensaje(FILE *file)
+ {
+-	fputs("El mensaje a escribir es Alvaro", file);
++	fputs("El mensaje a escribir es Kike", file);
+ 	rewind(file);
+ }
+ 
+@@ -11,19 +11,29 @@ int main (void)
+ {
+ 	FILE *file = fopen("datos.dat", "a+");
+ 	char *code;
+-	size_t n = 0;
+-	int c;
+ 
+-	if (file == NULL)
++	if (file == NULL) {
++		perror("El fichero no se ha abierto correctamente");
+ 		return -1;
++	}
+ 
+ 	genera_mensaje(file);
+ 
+-	code = malloc(101);
++	if ((code = (char *) malloc(101)) == NULL) {
++		perror("No se ha podido reservar memoria");
++		return -1;
++	}
++
+ 	while(fgets(code, 100, file)) {
+ 		printf("%s\n", code);
+ 	}
+ 
+ 	free(code);
++
++	if (fclose(file) == EOF) {
++		perror("El fichero no se ha cerrado correctamente");
++		return -1;
++	}
++
+ 	return 0;
+ }
+diff --git a/ejemplos/8/freadwrite.c b/ejemplos/8/freadwrite.c
+index 1b4ca2f..5bf8b00 100644
+--- a/ejemplos/8/freadwrite.c
++++ b/ejemplos/8/freadwrite.c
+@@ -4,20 +4,33 @@
+ int main()
+ {
+ 	FILE *fp;
+-	char c[] = "ejemplo fwrite/fread";
++	char cad[] = "ejemplo fwrite/fread";
+ 	char buffer[20];
+ 
+ 	fp = fopen("datos.dat", "w+");
+-	if (fp == NULL)
++	if (fp == NULL) {
++		perror("No se ha abierto el fichero correctamente");
+ 		return -1;
++	}
+ 
+-	fwrite(c, strlen(c) + 1, 1, fp);
++	if (fwrite(cad, strlen(cad) + 1, 1, fp) == 0){
++		perror("No se ha podido escribir ene l fichero");
++		return -1;
++	}
+ 
+ 	rewind(fp);
+ 
+-	fread(buffer, strlen(c) + 1, 1, fp);
++	if (fread(buffer, strlen(cad) + 1, 1, fp) == 0){
++		perror("No se ha podido leer del fichero");
++		return -1;
++	}
++
+ 	printf("%s\n", buffer);
+ 
+-	fclose(fp);
++	if (EOF == fclose(fp)) {
++		perror("El fichero no se ha cerrado correctamente");
++		return -1;
++	}
++
+ 	return 0;
+ }
+diff --git a/ejemplos/9/fprintf.c b/ejemplos/9/fprintf.c
+index 2c6ceca..acca5b2 100644
+--- a/ejemplos/9/fprintf.c
++++ b/ejemplos/9/fprintf.c
+@@ -16,19 +16,29 @@ int main (void)
+ {
+ 	FILE *file = fopen("datos.dat", "a+");
+ 	char *code;
+-	size_t n = 0;
+-	int c;
+ 
+-	if (file == NULL)
++	if (file == NULL) {
++		perror("No se ha podido abrir el fichero");
+ 		return -1;
++	}
+ 
+ 	genera_mensaje(file);
+ 
+-	code = malloc(101);
++	if ((code = (char *) malloc(101)) == NULL) {
++		perror("No se ha podido reservar memoria");
++		return -1;
++	}
++
+ 	while(fgets(code, 100, file)) {
+ 		printf("%s", code);
+ 	}
+ 
+ 	free(code);
++	
++	if (fclose(file) == EOF) {
++		perror("El fichero no se ha cerrado correctamente");
++		return -1;
++	}
++
+ 	return 0;
+ }
+-- 
+2.1.4
+
