@@ -1,0 +1,4 @@
+<Concesionario>
+    <Coche color="azul" matricula="SE6000DL" id="567" modelo="Clio 1.2" marca="Renault" />
+    <Coche color="blanco" matricula="SE6032DL" id="568" modelo="Astra" marca="Opel" />
+</Concesionario>
